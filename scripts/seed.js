@@ -1,5 +1,6 @@
 const fs = require('fs')
 const db = require('../lib/db')
+const isTestEnv = process.env.NODE_ENV === 'test'
 
 const stream = fs.createReadStream('./data/projects.csv')
 
@@ -19,6 +20,8 @@ const createTableSql = `
   )
 `
 let data = ''
+
+if (isTestEnv) db.query = db.run
 
 db.query(createTableSql, err => {
   if (err) return console.error('Error creating table:', err)
@@ -51,6 +54,7 @@ db.query(createTableSql, err => {
   })
 
   stream.on('end', () => {
+    if (isTestEnv) return
     db.end(err => {
       if (err) return console.error('Error closing database connection:', err)
       console.log('Database connection closed')
